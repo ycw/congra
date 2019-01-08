@@ -26,7 +26,8 @@ See https://blog.codepen.io/2016/06/06/force-demo-fully-refresh-special-css-comm
 - `repeating-` (optional) supported
 - `from <angle>` (optional) supported ... `angle` can be in `%|deg|turn`
 - `at <x> <y>`  (optional) supported ... `x/y` can only be in `%`
-- `<color> <offset>, ..` (at least 1) ... `color` can only be `rgba()`; `offset` (optional) can be in `%|deg|turn`
+- `<color> <offset>, ..` (at least 1) ... `color` can only be `rgba()`; 
+                                          `offset` (optional) can be in `%|deg|turn`
 
 # More Examples
 - Omiting `from` clause implies `angle = 0deg`
@@ -46,8 +47,13 @@ body {
 If a color stop is at wrong location, Congra will ignore just the wrong one. Ex
 ```css
 body {
-   --cg1:conic-gradient(rgba(0,0,0,0) 90deg, rgba(0,0,0,0), rgba(0,0,0,0) 20deg, rgba(0,0,0,0), rgba(0,0,0,0));
-   /*                  --- ok -------------  --- ok-------  ---- ignore ---^^    --- ok ------  --- ok ------ 
+   --cg1:conic-gradient(
+     rgba(0,0,0,0) 90deg,   /* ok                     */  
+     rgba(0,0,0,0),         /* ok; omit = auto-calc   */
+     rgba(0,0,0,0) 20deg,   /* ignore; 20deg < 90deg  */
+     rgba(0,0,0,0) 75%,     /* ok; 75%=270deg > 90deg */
+     rgba(0,0,0,0)          /* ok; omit = auto-calc   */
+   );
 }
 ```
 
@@ -111,20 +117,22 @@ cg.render([{ // IGradient
   isRepeat,  // bool - is drawing re-use color stops? default false
   angle,     // float - normalized(===in trun, 0.125 = 45deg) default 0.0
   position,  // [float, float] normalized, default [0.5, 0.5]
-  stops      // {offset:float, color:float[4]}[]  offset normalized; color channels normalized (e.g. [1,0,0,1] = opaque red)
+  stops      // {offset:float, color:float[4]}[]  
+             // offset normalized; 
+             // color channels normalized (e.g. [1,0,0,1] = opaque red)
 }, {
   ..         // other gradients will draw ontop on same canvas
-}]);
+}]);         // render() will throw if required stops count > maxStops
 
 cg.resize({  // resize current canvas and get new piece of gl context
   width,     // new bitmap width 
   height     // new bitmap height
 });
 
-cg.toURL()         // return Promise{} 
-  .then(url => {   // url is a blob URL if canvas.toBlob is supported,
-                   // data URL otherwise(for Edge)
-  })
+cg.toURL()        // return Promise{} 
+  .then(url=>)    // resolve: `url` is a blob URL if `canvas.toBlob()` is supported,
+                  //          data URL otherwise(for Edge)
+  .catch(e=>)     // reject : toBlob() failed (hint: canvas is 0width or 0height)
 
 cg.gl        // getter, return current WebglRenderingContext{}
 cg.maxStops  // back ref
