@@ -1,35 +1,77 @@
-# Congra
-CSS conic gradient polyfill by webgl
+css conic gradient polyfill by webgl; 
+[demo](https://codepen.io/ycw/pen/yGEYGw) @CodePen
 
-# Dependencies
+
+
+# dependencies
+
 ```html
-<script src='twgl.js'></script><!--https://github.com/greggman/twgl.js-->
-<script src='congra.js'></script>
-<script src='congra.polyfill.js'></script>
+<script src='twgl.js'></script>
+<script src='congra.bundled.js'></script>
 ```
+- `twgl.js`: "A Tiny WebGL helper Library" by https://github.com/greggman/twgl.js
 
-# Basic Usage
+
+
+# usage
+
 ```css
 body {
   min-height: 100vh;
-  --cg1: conic-gradient(rgba(0,0,0,0), rgba(0,0,0,1));
+  --cg1: conic-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
   background-image: var(--cg1);
 }
 ```
-To CodePen users, if you find that modified css does not live update anymore, you should stop css-injection by adding a special comment like this.
+
+
+
+# support & limitation
+
+```
+feature          supported    limitation   default
+-------          ---------    ----------   -------
+repeating-       yes          n/a          n/a      
+from <angle>     yes          %|deg|turn   0%
+at <x> <y>       yes          %            50% 50%
+COLORSTOP
+  <color>        yes          rgba()       n/a
+  <hint>         no           n/a          n/a
+  <offset>       yes          %|deg|turn   ''
+```
+
+Note, unitless zero is not supported. 
+```css
+body {
+  --cg1: conic-gradient(rgba(0,0,0,0) 0, ..); // should be `rgba(0,0,0,0) 0%`
+  --cg2: conic-gradient(from 0, ..);          // should be `from 0%`
+  --cg3: conic-gradient(at 0 0, ..);          // should be `at 0% 0%`
+}
+```
+
+
+
+# special notes
+
+To CodePen users, you should stop css-injection feature in order to trigger *live* preview by adding this special comment
 ```css
 /* CP_DoFullRefresh */
 ```
 See https://blog.codepen.io/2016/06/06/force-demo-fully-refresh-special-css-comment/
 
-# Support & Limitation
-- `repeating-` (optional) supported
-- `from <angle>` (optional) supported ... `angle` can be in `%|deg|turn`
-- `at <x> <y>`  (optional) supported ... `x/y` can only be in `%`
-- `<color> <offset>, ..` (at least 1) ... `color` can only be `rgba()`; 
-                                          `offset` (optional) can be in `%|deg|turn`
+To LessCSS users, you should preserve `rgba()` annotation by using http://lesscss.org/#escaping or simply fade alpha to `0.9999..`.
+```lesscss
+@red   : ~'rgba(255, 0, 0, 1)`;  // escaping
+@black : rgba(0, 0, 0, 0.999)`;  // almost-fullopaque
+body {
+  --cg1      : conic-gradient(@red, @black);
+  background : var(--cg1);
+}
+```
 
-# More Examples
+
+
+# more examples
+
 - Omiting `from` clause implies `angle = 0deg`
 - Omiting `at` clause implies `x = 50%, y = 50%`
 - Omiting `offset` will be auto-calculated.
@@ -44,20 +86,25 @@ body {
 }
 ```
 
-If a color stop is at wrong location, Congra will ignore just the wrong one. Ex
+If a color stop is at wrong location, Congra will ignore just the wrong one. 
+*Caution*: this behavior is *different* from one defined in spec.
+Ex
 ```css
 body {
    --cg1:conic-gradient(
-     rgba(0,0,0,0) 90deg,   /* ok                     */  
-     rgba(0,0,0,0),         /* ok; omit = auto-calc   */
-     rgba(0,0,0,0) 20deg,   /* ignore; 20deg < 90deg  */
-     rgba(0,0,0,0) 75%,     /* ok; 75%=270deg > 90deg */
-     rgba(0,0,0,0)          /* ok; omit = auto-calc   */
+     rgba(0,0,0,0) 90deg,   /* ok                       */  
+     rgba(0,0,0,0),         /* ok;     auto-calc        */
+     rgba(0,0,0,0) 20deg,   /* ignore; 20deg < 90deg    */
+     rgba(0,0,0,0) 30deg,   /* ignore; 30deg < 90deg    */
+     rgba(0,0,0,0) 75%,     /* ok;     75% = 270deg     */
+     rgba(0,0,0,0)          /* ok;     auto-calc        */
    );
 }
 ```
 
-# Under the Hood
+
+
+# under the hood
 Congra finds elements that have custom properties "--cgN" (N=1,2,3..), then Congra parses property values.
 Each parsed value is sent to renderer to draw a gradient bitmap. Resolution of bitmap is equal to the element's bounding client rectangle. Finally, Congra creates image URLs for each bitmap and stores it back to element's custom property "--cgN".
 
@@ -67,91 +114,92 @@ body {
 }
 ```
 
-Since CSS custom property is inherited by default, Congra may create bitmaps for elements that never consume.
-Ex. Given HTML
+Stopping Congra from creating useless bitmap.
+Ex
+Given
 ```html
-<article class='parent'>
-  <h1 class='childA'>
-    <em class='childA-child'></em>
+<article class='feature-article'>
+  <h1 class='i-dont-use-conic-gradient'>
+    <em class='i-use-the-conic-gradient'></em>
   </h1>
-  <p class='childB'></p>
 </article>
 ```
+Then
 ```css
-.parent {
+.feature-article { 
   --cg1: conic-gradient(..);
   background-image: var(--cg1);
   width: 400px;
   height: 400px;
 }
-.childA {         /* childA inherits `--cg1` */
-  --cgAllow: no;  /* this stops Congra from creating gradient bitmap */
+.i-dont-use-conic-gradient {
+  --cgAllow: no;  /* stops Congra from creating gradient bitmap */
 }
-.childA-child {   /* childA inherits `--cg1` and `--cgAllow` */
-  --cgAllow: yes; /* re-allow Congra to create gradient bitmap (100x100) */
+.i-use-conic-gradient {
+  --cgAllow: yes; /* re-allow (--cg1 be the same as one defined in .feature-article{} */
   width: 100px;
   height: 100px;
 }
-.childB {                      
-  /* childB inherits `--cg1` property. */ 
-  /* Congra will create a 200x200 bitmap */
-  backround-image: var(--cg1); 
-  width: 200px;
-  height: 200px;
-}
 ```
 
+
+
 # congra.js 
-`congra.js` exposes `ConGra` fn in global, it is the render core util. You can use it standalone.
-E.g. render smooth animation by directly manipulating gl context. 
+`congra.js` exposes `ConGra()` in global, it creates congra render contexts. You can use it standalone.
+E.g. rendering smooth animation by directly manipulating its gl context. 
 
 ```js
 const cg = ConGra({
-  width,    // bitmap width
-  height,   // bitmap height
-  maxStops, // optional(defaults 4) fshader supports <maxStops>(inc.) color stops;
-  twgl      // inject twgljs
+  width,    // bitmap width; can be changed by `.resize()`
+  height,   // bitmap height; ditto
+  maxStops, // optional(defaults 32); color stops that frgshader supports.
+  twgl      // inject the twgljs tool
 });
 
 cg.render([{ // IGradient
-  isRepeat,  // bool - is drawing re-use color stops? default false
-  angle,     // float - normalized(===in trun, 0.125 = 45deg) default 0.0
-  position,  // [float, float] normalized, default [0.5, 0.5]
-  stops      // {offset:float, color:float[4]}[]  
-             // offset normalized; 
-             // color channels normalized (e.g. [1,0,0,1] = opaque red)
+  isRepeat,  // bool - default false
+  angle,     // float - normalized, e.g. 0.125 -> 45deg; default 0.0
+  position,  // float[2] - normalized; default [0.5, 0.5]
+  stops      // { 
+             //   offset,   // float - 0.0 can be omitted, 1.0 auto gen sliently
+             //   color     // float[4] - normalized, e.g. [1,0,0,1] -> opaque red
+             // }[1+]
 }, {
   ..         // other gradients will draw ontop on same canvas
 }]);         // render() will throw if required stops count > maxStops
 
-cg.resize({  // resize current canvas and get new piece of gl context
-  width,     // new bitmap width 
-  height     // new bitmap height
+cg.resize({  // resize current canvas
+  width,     // target bitmap width 
+  height     // target bitmap height
 });
 
 cg.toURL()        // return Promise{} 
-  .then(url=>)    // resolve: `url` is a blob URL if `canvas.toBlob()` is supported,
+  .then(url=>..)  // resolve: `url` is a blob URL if `canvas.toBlob()` is supported,
                   //          data URL otherwise(for Edge)
-  .catch(e=>)     // reject : toBlob() failed (hint: canvas is 0width or 0height)
+  .catch(er=>..)  // reject : `toBlob()` fails, e.g. 0-height canvas
 
 cg.gl        // getter, return current WebglRenderingContext{}
-cg.maxStops  // back ref
+cg.maxStops  // back ref.
 cg.gl.width  // current canvas width
 cg.gl.height // current canvas height
 ```
 
+
+
 # congra.polyfill.js
-`congra.polyfill.js` exposes `ConGraCSSParser` object. It contains only one method, `parse`. It'll...
-1. collect custom properties(e.g. `--cg1`, `--cg2` etc)
-2. parse `conic-gradient(..)`(string) into `IGradient`
-3. pass `IGradient{}` to `cg.render(..)` and then `cg.toURL()`
+`congra.polyfill.js` exposes `ConGraCSSParser{}`. A `conic-gradient` syntax parser.
+Flow:
+1. collect custom properties(e.g. `--cg1`, `--cg2` ... upto `--cg{maxImages}`)
+2. parse `conic-gradient(..)`(in string) into `IGradient`
+3. pass `IGradient{}` to `cg.render(..)` and then get image url by `cg.toURL()`
 4. put image url back to custom properties(e.g. `--cg1:url(blob:..)`)
 
+Configuration:
 ```js
 ConGraCSSParser.parse({
   prefix,     // default '--cg' 
   maxImages,  // default 16     probing `--cg1`, `--cg2`, ..., `--cg16`
-  suffix,     // default ''     e.g. if suffix is '-i', output bitmap url will inject to '--cg1-i'
-  root        // default document.body(include)    where to select candidate elements
+  suffix,     // default ''     e.g. if suffix is '-i', output bitmap url will be injected to '--cg1-i'
+  root        // default document.body(include)    root elm, to be probed `--cg1`..
 });
 ```
