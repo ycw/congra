@@ -3,7 +3,7 @@ css conic gradient polyfill by webgl;
 
 
 
-# dependencies
+# dependency
 
 - `twgl.js`: "A Tiny WebGL helper Library" by https://github.com/greggman/twgl.js
 
