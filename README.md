@@ -42,9 +42,9 @@ COLORSTOP
 Note, unitless zero is not supported. 
 ```css
 body {
-  --cg1: conic-gradient(rgba(0,0,0,0) 0, ..); // should be `rgba(0,0,0,0) 0%`
-  --cg2: conic-gradient(from 0, ..);          // should be `from 0%`
-  --cg3: conic-gradient(at 0 0, ..);          // should be `at 0% 0%`
+  --cg1: conic-gradient(rgba(0,0,0,0) 0, ..); /* should be `rgba(0,0,0,0) 0%`  */
+  --cg2: conic-gradient(from 0, ..);          /* should be `from 0%`           */
+  --cg3: conic-gradient(at 0 0, ..);          /* should be `at 0% 0%`          */
 }
 ```
 
@@ -131,11 +131,13 @@ Then
   width: 400px;
   height: 400px;
 }
+
 .i-dont-use-conic-gradient {
   --cgAllow: no;  /* stops Congra from creating gradient bitmap */
 }
+
 .i-use-conic-gradient {
-  --cgAllow: yes; /* re-allow (--cg1 be the same as one defined in .feature-article{} */
+  --cgAllow: yes; /* re-allow */
   width: 100px;
   height: 100px;
 }
@@ -144,8 +146,8 @@ Then
 
 
 # congra.js 
-`congra.js` exposes `ConGra()` in global, it creates congra render contexts. You can use it standalone.
-E.g. rendering smooth animation by directly manipulating its gl context. 
+`congra.js` exposes `ConGra()` in global, it creates congra render contexts. You can use it standalone,
+e.g, rendering smooth animation by directly manipulating its gl context. 
 
 ```js
 const cg = ConGra({
@@ -185,20 +187,40 @@ cg.gl.height // current canvas height
 
 
 
+# congra.parser.js
+It exposes `ConGra.parser`.
+```js
+const cssstr = `conic-gradient(from 0% at 50% 50%, rgba(0,0,0,0), rgba(255,0,0,1))`;
+const parser = ConGra.parser;
+const gradient = parser.parse(cssstr);
+
+gradient;   // IGradient {
+            //   isRepeat: false,
+            //   angle: 0.0,
+            //   position: [0.5, 0.5],
+            //   stops: [
+            //     { color:[0.0, 0.0, 0.0, 0.0], offset: 0.0 },
+            //     { color:[1.0, 0.0, 0.0, 1.0], offset: 1.0 }
+            //   ]
+            // }
+```
+
+
+
 # congra.polyfill.js
-`congra.polyfill.js` exposes `ConGraCSSParser{}`. A `conic-gradient` syntax parser.
+
 Flow:
-1. collect custom properties(e.g. `--cg1`, `--cg2` ... upto `--cg{maxImages}`)
-2. parse `conic-gradient(..)`(in string) into `IGradient`
+1. collect custom properties(e.g. `--cg1`, `--cg2` ... upto `--cg{maxImage}`)
+2. parse `"conic-gradient(..)"` into `IGradient{}`
 3. pass `IGradient{}` to `cg.render(..)` and then get image url by `cg.toURL()`
 4. put image url back to custom properties(e.g. `--cg1:url(blob:..)`)
 
-Configuration:
+Internally:
 ```js
-ConGraCSSParser.parse({
-  prefix,     // default '--cg' 
-  maxImages,  // default 16     probing `--cg1`, `--cg2`, ..., `--cg16`
-  suffix,     // default ''     e.g. if suffix is '-i', output bitmap url will be injected to '--cg1-i'
-  root        // default document.body(include)    root elm, to be probed `--cg1`..
+ConGra.parser.parse({
+  inputPrefix: '--cg'
+  maxImage: 32
+  outputSuffix: ''
+  root: document.body
 });
 ```
