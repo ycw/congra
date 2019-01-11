@@ -107,15 +107,14 @@ body {
 # under the hood
 Congra finds elements that have custom properties "--cgN" (N=1,2,3..), then Congra parses property values.
 Each parsed value is sent to renderer to draw a gradient bitmap. Resolution of bitmap is equal to the element's bounding client rectangle. Finally, Congra creates image URLs for each bitmap and stores it back to element's custom property "--cgN".
-
+Input custom property becomes ...
 ```css
 body {
   --cg1: url(blob:..);
 }
 ```
 
-Stopping Congra from creating useless bitmap.
-Ex
+Way to stopping Congra from creating useless bitmap. Ex
 Given
 ```html
 <article class='feature-article'>
