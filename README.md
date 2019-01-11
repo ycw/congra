@@ -7,6 +7,9 @@ css conic gradient polyfill by webgl;
 
 ```html
 <script src='twgl.js'></script>
+<script src='congra.js'></script>
+<script src='congra.parser.js'></script>
+<script src='congra.polyfill.js'></script>
 <script src='congra.polyfill.auto.js'></script>
 ```
 - `twgl.js`: "A Tiny WebGL helper Library" by https://github.com/greggman/twgl.js
