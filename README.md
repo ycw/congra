@@ -115,8 +115,10 @@ body {
 }
 ```
 
-Way to stopping Congra from creating useless bitmap. Ex
-Given
+We can stop Congra from creating bitmaps for elements that never consume them.
+Ex.
+
+html
 ```html
 <article class='feature-article'>
   <h1 class='i-dont-use-conic-gradient'>
@@ -124,7 +126,8 @@ Given
   </h1>
 </article>
 ```
-Then
+
+css
 ```css
 .feature-article { 
   --cg1: conic-gradient(..);
@@ -143,6 +146,7 @@ Then
   height: 100px;
 }
 ```
+
 
 
 # bundle
