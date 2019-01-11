@@ -7,7 +7,7 @@ css conic gradient polyfill by webgl;
 
 ```html
 <script src='twgl.js'></script>
-<script src='congra.bundled.js'></script>
+<script src='congra.polyfill.auto.js'></script>
 ```
 - `twgl.js`: "A Tiny WebGL helper Library" by https://github.com/greggman/twgl.js
 
@@ -144,34 +144,35 @@ Then
 ```
 
 
+# bundle
 
-# congra.js 
+## congra.js 
 `congra.js` exposes `ConGra()` in global, it creates congra render contexts. You can use it standalone,
 e.g, rendering smooth animation by directly manipulating its gl context. 
 
 ```js
 const cg = ConGra({
-  width,    // bitmap width; can be changed by `.resize()`
-  height,   // bitmap height; ditto
-  maxStops, // optional(defaults 32); color stops that frgshader supports.
-  twgl      // inject the twgljs tool
+  width,          // bitmap width; can be changed by `.resize()`
+  height,         // bitmap height; ditto
+  maxStops,       // optional(defaults 32); color stops that frgshader supports.
+  twgl            // inject the twgljs tool
 });
 
-cg.render([{ // IGradient
-  isRepeat,  // bool - default false
-  angle,     // float - normalized, e.g. 0.125 -> 45deg; default 0.0
-  position,  // float[2] - normalized; default [0.5, 0.5]
-  stops      // { 
-             //   offset,   // float - 0.0 can be omitted, 1.0 auto gen sliently
-             //   color     // float[4] - normalized, e.g. [1,0,0,1] -> opaque red
-             // }[1+]
+cg.render([{      // IGradient
+  isRepeat,       // bool - default false
+  angle,          // float - normalized, e.g. 0.125 -> 45deg; default 0.0
+  position,       // float[2] - normalized; default [0.5, 0.5]
+  stops           // { 
+                  //   offset,   // float - 0.0 can be omitted, 1.0 auto gen sliently
+                  //   color     // float[4] - normalized, e.g. [1,0,0,1] -> opaque red
+                  // }[1+]
 }, {
-  ..         // other gradients will draw ontop on same canvas
-}]);         // render() will throw if required stops count > maxStops
+  ..              // other gradients will draw ontop on same canvas
+}]);              // render() will throw if required stops count > maxStops
 
-cg.resize({  // resize current canvas
-  width,     // target bitmap width 
-  height     // target bitmap height
+cg.resize({       // resize current canvas
+  width,          // target bitmap width 
+  height          // target bitmap height
 });
 
 cg.toURL()        // return Promise{} 
@@ -179,15 +180,16 @@ cg.toURL()        // return Promise{}
                   //          data URL otherwise(for Edge)
   .catch(er=>..)  // reject : `toBlob()` fails, e.g. 0-height canvas
 
-cg.gl        // getter, return current WebglRenderingContext{}
-cg.maxStops  // back ref.
-cg.gl.width  // current canvas width
-cg.gl.height // current canvas height
+cg.gl             // getter, return current WebglRenderingContext{}
+cg.maxStops       // back ref.
+cg.gl.width       // current canvas width
+cg.gl.height      // current canvas height
 ```
 
 
 
-# congra.parser.js
+## congra.parser.js
+
 It exposes `ConGra.parser`.
 ```js
 const cssstr = `conic-gradient(from 0% at 50% 50%, rgba(0,0,0,0), rgba(255,0,0,1))`;
@@ -207,20 +209,30 @@ gradient;   // IGradient {
 
 
 
-# congra.polyfill.js
+## congra.polyfill.js
 
-Flow:
-1. collect custom properties(e.g. `--cg1`, `--cg2` ... upto `--cg{maxImage}`)
-2. parse `"conic-gradient(..)"` into `IGradient{}`
-3. pass `IGradient{}` to `cg.render(..)` and then get image url by `cg.toURL()`
-4. put image url back to custom properties(e.g. `--cg1:url(blob:..)`)
+It exposes `ConGra.polyfill(option)`.
 
-Internally:
+Options
 ```js
-ConGra.parser.parse({
-  inputPrefix: '--cg'
-  maxImage: 32
-  outputSuffix: ''
-  root: document.body
+ConGra.polyfill({
+  inputPrefix,       // string  - custom prop prefix, e.g. `--cg`
+  maxImage,          // integer - max bitmap count per dom elm
+  outputSuffix,      // string  - custom prop suffix, e.g. `-i`, img url will be injected to `--cg1-i`
+  root               // dom elm - starting point (include itself)
 });
+```
+
+
+### congra.polyfill.auto.js
+
+It calls `ConGra.polyfill()`.
+
+```js
+ConGra.polyfill({
+    inputPrefix: `--cg`,
+    maxImage: 32,
+    outputSuffix: ``,
+    root: document.body
+})
 ```
