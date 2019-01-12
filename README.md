@@ -87,18 +87,19 @@ body {
 }
 ```
 
-If a color stop is at wrong location, Congra will ignore just the wrong one. 
-*Caution*: this behavior is *different* from one defined in spec.
+https://drafts.csswg.org/css-images-4/#color-stop
+"2. If a color stop or color hint has a position that is less than the specified position of any color stop or color hint before it in the list, set its position to be equal to the largest specified position of any color stop or color hint before it."
+
 Ex
 ```css
 body {
    --cg1:conic-gradient(
-     rgba(0,0,0,0) 90deg,   /* ok                       */  
-     rgba(0,0,0,0),         /* ok;     auto-calc        */
-     rgba(0,0,0,0) 20deg,   /* ignore; 20deg < 90deg    */
-     rgba(0,0,0,0) 30deg,   /* ignore; 30deg < 90deg    */
-     rgba(0,0,0,0) 75%,     /* ok;     75% = 270deg     */
-     rgba(0,0,0,0)          /* ok;     auto-calc        */
+     rgba(0,0,0,0) 90deg,   /* 0.25  */
+     rgba(0,0,0,0),         /* defer */
+     rgba(0,0,0,0) 20deg,   /* 0.25 (largest *specified* pos) */
+     rgba(0,0,0,0) 30deg,   /* 0.25 (largest *specified* pos) */
+     rgba(0,0,0,0) 75%,     /* 0.75  */
+     rgba(0,0,0,0)          /* 1.00  */
    );
 }
 ```
