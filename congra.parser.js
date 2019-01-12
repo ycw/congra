@@ -49,34 +49,65 @@ ConGra.parser = (function () {
         }
 
         // Clean up the tempStops[] 
-        // 1) remove stops that hv smaller offset comparing to its preceeding stops
-        // 2) calculate actual value for offset=NaN, e.g. prev+avg(prev, next)
+        // spec(https://drafts.csswg.org/css-images-4/#conic-gradients)
+        // #1 
+        // If the first color stop does not have a position, set its position to 0%. 
+        // If the last color stop does not have a position, set its position to 100%. 
+        // #2 
+        // If a color stop or color hint has a position that is less than the 
+        // specified position of any color stop or color hint before it in the
+        // list, set its position to be equal to the largest specified position 
+        // of any color stop or color hint before it.
+        // #3 
+        // If any color stop still does not have a position, then, for each run 
+        // of adjacent color stops without positions, set their positions so 
+        // that they are evenly spaced between the preceding and following 
+        // color stops with positions. 
         let cleanTempStops = [];
         let lastStopOffset = 0.0;
-        for (const stop of tempStops) { //#1
-            if (Number.isNaN(stop.offset)) {
+        for (const stop of tempStops) { 
+            if (Number.isNaN(stop.offset)) { //(#3)
                 cleanTempStops.push(stop);
             }
             else if (stop.offset >= lastStopOffset) {
                 cleanTempStops.push(stop);
                 lastStopOffset = stop.offset;
             }
+            else { 
+                //(#2)
+                //  ... to the *largest* *SPECIFIED* position ...
+                //  e.g. conic-gradient(
+                //      red 90deg,   // = 0.25
+                //      green,       // NaN
+                //      blue 0deg,   // = 0.25 (the largest *specified* position)
+                //                   // then green is totally gone.
+                //  ) 
+                //     
+                stop.offset = lastStopOffset;
+                cleanTempStops.push(stop);
+            }
         }
-        for (const [i, stop] of cleanTempStops.entries()) { //#2
-            if (Number.isNaN(stop.offset)) {
+        for (const [i, stop] of cleanTempStops.entries()) {
+            if (Number.isNaN(stop.offset)) { //(#1)
                 if (i === 0) {
                     stop.offset = 0.0;
                     continue;
                 }
-                if (i === cleanTempStops.length - 1) {
+                if (i === cleanTempStops.length - 1) {//(#1)
                     stop.offset = 1.0;
                     continue;
                 }
                 
-                // (red 0.25, green, blue, black)
-                //   0          1    2     3
-                //              i    cur
-                //              i          cur
+                //
+                // Satisfying (#3) evenly spaced
+                // e.g. conic-gradient(
+                //        red 270deg,   // determined = 0.75
+                //        green,        // 0.75 + (1.0 - 0.75) * 1/3   ---+
+                //        blue,         // 0.75 + (1.0 - 0.75) * 2/3      |>3 stops
+                //        cyan          // 0.75 + (1.0 - 0.75) * 3/3   ---+
+                //      )
+                //
+
                 let cursor = i + 1;
                 let nextStop = cleanTempStops[cursor];
                 
@@ -175,6 +206,7 @@ ConGra.parser = (function () {
             // Stops 
             data.stops = parseColorStopList(match[7]);
         }
+
 
         // return 
         return data
