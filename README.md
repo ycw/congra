@@ -1,7 +1,5 @@
-Rewrite from scratch @2019/1/17
-
-### Updates
-- parcel build w/ UMD global `Congra` (small g)
+### Updates 2019/1/17
+Parcel build w/ UMD global `Congra` (small g)
 
 ### Dependency
 https://github.com/greggman/twgl.js
