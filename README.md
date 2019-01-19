@@ -13,3 +13,4 @@ https://codepen.io/ycw/full/yGrwBE
 
 ### Usage
 // TODO
+see min.usage.js
