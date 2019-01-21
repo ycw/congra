@@ -1,6 +1,3 @@
-### Updates 2019/1/17
-Parcel build w/ UMD global `Congra` (small g)
-
 ### Dependency
 https://github.com/greggman/twgl.js
 
@@ -13,4 +10,4 @@ https://codepen.io/ycw/full/yGrwBE
 
 ### Usage
 // TODO
-see min.usage.js
+see `min.usage.js`
